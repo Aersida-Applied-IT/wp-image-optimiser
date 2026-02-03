@@ -3,8 +3,9 @@ import { useImageStore } from '@/hooks/use-image-store';
 import ImageCard from '@/components/image-processor/ImageCard';
 import ProcessingSettings from '@/components/image-processor/ProcessingSettings';
 import ExportPanel from '@/components/image-processor/ExportPanel';
+import BatchActions from '@/components/image-processor/BatchActions';
 import { Button } from "@/components/ui/button";
-import { Upload, Image as ImageIcon, Layers, Zap } from "lucide-react";
+import { Upload, Image as ImageIcon, Layers, Zap, Trash2 } from "lucide-react";
 import imageCompression from 'browser-image-compression';
 import { showError, showSuccess } from '@/utils/toast';
 import { MadeWithDyad } from "@/components/made-with-dyad";
@@ -20,6 +21,9 @@ const Index = () => {
     updateImageTags,
     updateImageStatus,
     addGlobalTag,
+    batchAddTags,
+    clearAllTags,
+    setImages
   } = useImageStore();
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -77,23 +81,13 @@ const Index = () => {
     showSuccess("All images optimized successfully!");
   };
 
-  const handleDownloadAll = () => {
-    // In a real app, we'd use JSZip here. For now, we'll trigger individual downloads
-    // or suggest the user download them one by one if many.
-    const completed = images.filter(img => img.status === 'completed');
-    if (completed.length === 0) {
-      showError("No optimized images to download.");
-      return;
-    }
-
-    completed.forEach((img, index) => {
-      setTimeout(() => {
-        const link = document.createElement('a');
-        link.href = img.optimizedUrl!;
-        link.download = img.optimizedBlob?.name || `image-${index}.webp`;
-        link.click();
-      }, index * 200);
+  const handleClearQueue = () => {
+    images.forEach(img => {
+      if (img.preview) URL.revokeObjectURL(img.preview);
+      if (img.optimizedUrl) URL.revokeObjectURL(img.optimizedUrl);
     });
+    setImages([]);
+    showSuccess("Queue cleared.");
   };
 
   return (
@@ -132,9 +126,15 @@ const Index = () => {
           {/* Left Column: Settings & Export */}
           <div className="lg:col-span-4 space-y-6">
             <ProcessingSettings settings={settings} onUpdate={setSettings} />
+            <BatchActions 
+              availableTags={globalTags} 
+              onBatchAddTags={batchAddTags}
+              onClearAllTags={clearAllTags}
+              hasImages={images.length > 0}
+            />
             <ExportPanel
               onProcessAll={handleProcessAll}
-              onDownloadAll={handleDownloadAll}
+              images={images}
               isProcessing={isProcessing}
               hasImages={images.length > 0}
             />
@@ -174,17 +174,11 @@ const Index = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-slate-500 hover:text-red-600"
-                    onClick={() => {
-                      images.forEach(img => {
-                        if (img.preview) URL.revokeObjectURL(img.preview);
-                        if (img.optimizedUrl) URL.revokeObjectURL(img.optimizedUrl);
-                      });
-                      // Reset images
-                      window.location.reload();
-                    }}
+                    className="text-slate-400 hover:text-red-600 transition-colors"
+                    onClick={handleClearQueue}
                   >
-                    Clear All
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Clear Queue
                   </Button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

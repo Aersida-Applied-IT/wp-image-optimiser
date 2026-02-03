@@ -1,25 +1,60 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, Terminal, ExternalLink, Info } from "lucide-react";
-import { showSuccess } from '@/utils/toast';
+import { Download, Terminal, ExternalLink, Info, FileArchive } from "lucide-react";
+import { showSuccess, showError } from '@/utils/toast';
+import JSZip from 'jszip';
 
 interface ExportPanelProps {
   onProcessAll: () => void;
-  onDownloadAll: () => void;
+  images: any[];
   isProcessing: boolean;
   hasImages: boolean;
 }
 
 const ExportPanel: React.FC<ExportPanelProps> = ({
   onProcessAll,
-  onDownloadAll,
+  images,
   isProcessing,
   hasImages,
 }) => {
+  const [isZipping, setIsZipping] = React.useState(false);
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     showSuccess("Command copied to clipboard!");
+  };
+
+  const handleDownloadZip = async () => {
+    const completed = images.filter(img => img.status === 'completed');
+    if (completed.length === 0) {
+      showError("No optimized images to download. Process them first!");
+      return;
+    }
+
+    setIsZipping(true);
+    try {
+      const zip = new JSZip();
+      completed.forEach((img) => {
+        if (img.optimizedBlob) {
+          zip.file(img.optimizedBlob.name, img.optimizedBlob);
+        }
+      });
+
+      const content = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(content);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `wp-images-${new Date().toISOString().split('T')[0]}.zip`;
+      link.click();
+      URL.revokeObjectURL(url);
+      showSuccess("ZIP archive created and downloaded!");
+    } catch (err) {
+      showError("Failed to create ZIP archive.");
+      console.error(err);
+    } finally {
+      setIsZipping(false);
+    }
   };
 
   return (
@@ -42,10 +77,15 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
           <Button
             variant="outline"
             className="w-full border-indigo-200 text-indigo-700 hover:bg-indigo-100"
-            onClick={onDownloadAll}
-            disabled={isProcessing || !hasImages}
+            onClick={handleDownloadZip}
+            disabled={isProcessing || !hasImages || isZipping}
           >
-            Download Optimized ZIP
+            {isZipping ? "Creating ZIP..." : (
+              <>
+                <FileArchive className="mr-2 h-4 w-4" />
+                Download Optimized ZIP
+              </>
+            )}
           </Button>
         </CardContent>
       </Card>
