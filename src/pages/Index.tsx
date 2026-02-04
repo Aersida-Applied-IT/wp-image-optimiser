@@ -1,13 +1,17 @@
 import React, { useCallback, useState } from 'react';
+import { Image as ImageIcon, Layers, Zap, Trash2, Download } from "lucide-react";
+import imageCompression from 'browser-image-compression';
+
 import { useImageStore } from '@/hooks/use-image-store';
+import { showError, showSuccess } from '@/utils/toast';
+
 import ImageCard from '@/components/image-processor/ImageCard';
 import ProcessingSettings from '@/components/image-processor/ProcessingSettings';
 import ExportPanel from '@/components/image-processor/ExportPanel';
 import BatchActions from '@/components/image-processor/BatchActions';
 import { Button } from "@/components/ui/button";
-import { Upload, Image as ImageIcon, Layers, Zap, Trash2 } from "lucide-react";
-import imageCompression from 'browser-image-compression';
-import { showError, showSuccess } from '@/utils/toast';
+
+
 import { MadeWithDyad } from "@/components/made-with-dyad";
 
 const Index = () => {
@@ -99,7 +103,7 @@ const Index = () => {
             <div className="bg-indigo-600 p-1.5 rounded-lg">
               <Zap className="h-5 w-5 text-white" />
             </div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">WP Image Prep</h1>
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight">WP Image Optimiser</h1>
           </div>
           <div className="flex items-center gap-4">
             <label className="cursor-pointer">
@@ -112,8 +116,8 @@ const Index = () => {
               />
               <Button variant="outline" className="gap-2 border-slate-200" asChild>
                 <span>
-                  <Upload className="h-4 w-4" />
-                  Upload Images
+                  <Download className="h-4 w-4" />
+                  Load Images
                 </span>
               </Button>
             </label>
@@ -147,9 +151,9 @@ const Index = () => {
                 <div className="bg-slate-50 p-4 rounded-full mb-4">
                   <ImageIcon className="h-12 w-12 text-slate-300" />
                 </div>
-                <h3 className="text-lg font-semibold text-slate-900">No images uploaded</h3>
+                <h3 className="text-lg font-semibold text-slate-900">No images loaded</h3>
                 <p className="text-slate-500 max-w-xs mt-2">
-                  Upload your PNG or JPEG files to start optimizing them for WordPress.
+                  Load your image files to start optimising them.
                 </p>
                 <label className="mt-6 cursor-pointer">
                   <input
@@ -159,8 +163,8 @@ const Index = () => {
                     className="hidden"
                     onChange={handleFileChange}
                   />
-                  <Button className="bg-indigo-600 hover:bg-indigo-700">
-                    Select Files
+                  <Button className="bg-indigo-600 hover:bg-indigo-700" asChild>
+                    <span>Select Files</span>
                   </Button>
                 </label>
               </div>
