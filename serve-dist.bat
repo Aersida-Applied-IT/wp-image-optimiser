@@ -8,15 +8,14 @@ echo   WP Image Optimiser - Starting Server
 echo ========================================
 echo.
 
-REM Check if dist folder exists
-if not exist "dist" (
-    echo [ERROR] The 'dist' folder was not found!
+REM Check if dist folder contents exists
+if not exist "index.html" (
+    echo [ERROR] The 'index.html' file was not found!
     echo.
     echo This script is for serving the pre-built version.
     echo Make sure you have extracted the dist folder from the release ZIP.
     echo.
     echo Expected structure:
-    echo   dist\
     echo     index.html
     echo     assets\
     echo     ...
@@ -35,9 +34,7 @@ if %ERRORLEVEL% EQU 0 (
     echo.
     echo ========================================
     echo.
-    cd dist
     python -m http.server 9081
-    cd ..
     pause
     exit /b 0
 )
@@ -52,9 +49,7 @@ if %ERRORLEVEL% EQU 0 (
     echo.
     echo ========================================
     echo.
-    cd dist
     python3 -m http.server 9081
-    cd ..
     pause
     exit /b 0
 )
@@ -69,9 +64,7 @@ if %ERRORLEVEL% EQU 0 (
     echo.
     echo ========================================
     echo.
-    cd dist
     node -e "const http=require('http');const fs=require('fs');const path=require('path');const mimeTypes={'html':'text/html','js':'text/javascript','css':'text/css','json':'application/json','png':'image/png','jpg':'image/jpg','gif':'image/gif','svg':'image/svg+xml','ico':'image/x-icon'};const server=http.createServer((req,res)=>{let filePath='.'+req.url;if(filePath==='./')filePath='./index.html';const ext=path.extname(filePath).substring(1);const contentType=mimeTypes[ext]||'application/octet-stream';fs.readFile(filePath,(err,content)=>{if(err){if(err.code==='ENOENT'){res.writeHead(404);res.end('File not found');}else{res.writeHead(500);res.end('Server error');}}else{res.writeHead(200,{'Content-Type':contentType});res.end(content);}});});server.listen(9081,()=>{console.log('Server running at http://localhost:9081');});"
-    cd ..
     pause
     exit /b 0
 )
@@ -93,7 +86,7 @@ echo After installing, restart Command Prompt and try again.
 echo.
 echo Alternative: You can also use any web server software:
 echo   - Apache, Nginx, or any other web server
-echo   - Point the document root to the 'dist' folder
+echo   - Point the document root to the extracted folder
 echo   - Configure it to serve on port 9081
 echo.
 pause
