@@ -35,7 +35,7 @@ For detailed installation instructions, please see [README_INSTALL.md](README_IN
 
 1. Adjust settings in the left panel:
    - **Max Width**: Set maximum image width/height
-   - **Quality**: Adjust compression quality (0.1 - 1.0)
+   - **Quality**: Adjust compression quality (0.7 - 1.0)
    - **Format**: Choose WebP, JPEG, or PNG
 2. Add tags to images individually or use batch tagging
 3. Edit metadata (title, alt text, description, caption) as needed
