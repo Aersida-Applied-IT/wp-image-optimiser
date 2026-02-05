@@ -9,7 +9,13 @@
 - The main page (default page) is src/pages/Index.tsx
 - UPDATE the main page to include the new components. OTHERWISE, the user can NOT see any components!
 - ALWAYS try to use the shadcn/ui library.
-- Tailwind CSS: always use Tailwind CSS for styling components. Utilize Tailwind classes extensively for layout, spacing, colors, and other design aspects.
+- Tailwind CSS: always use Tailwind CSS for styling components. Utilise Tailwind classes extensively for layout, spacing, colors, and other design aspects.
+- Use the browser-image-compression package to compress images.
+- Use the jszip package to create a zip file of the optimised images.
+- NEVER use "npm". ALWAYS try touse "pnpm".
+- NEVER use US English spelling. ALWAYS use AU English spelling.
+- ALWAYS use the latest version of the packages and libraries.
+- ALWAYS try to refactor the code to make it more efficient and readable.
 
 Available packages and libraries:
 
