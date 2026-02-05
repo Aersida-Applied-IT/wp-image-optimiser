@@ -27,6 +27,7 @@ const Index = () => {
     addGlobalTag,
     batchAddTags,
     clearAllTags,
+    updateImageMetadata,
     setImages
   } = useImageStore();
 
@@ -59,12 +60,12 @@ const Index = () => {
         type: `image/${settings.format}`,
       });
 
-      const optimizedUrl = URL.createObjectURL(finalFile);
+      const optimisedUrl = URL.createObjectURL(finalFile);
       
       updateImageStatus(image.id, 'completed', {
-        optimizedBlob: finalFile,
-        optimizedUrl,
-        optimizedSize: finalFile.size,
+        optimisedBlob: finalFile,
+        optimisedUrl,
+        optimisedSize: finalFile.size,
       });
     } catch (error) {
       console.error(error);
@@ -82,13 +83,13 @@ const Index = () => {
     }
     
     setIsProcessing(false);
-    showSuccess("All images optimized successfully!");
+    showSuccess("All images optimised successfully!");
   };
 
   const handleClearQueue = () => {
     images.forEach(img => {
       if (img.preview) URL.revokeObjectURL(img.preview);
-      if (img.optimizedUrl) URL.revokeObjectURL(img.optimizedUrl);
+      if (img.optimisedUrl) URL.revokeObjectURL(img.optimisedUrl);
     });
     setImages([]);
     showSuccess("Queue cleared.");
@@ -194,6 +195,7 @@ const Index = () => {
                       onRemove={() => removeImage(image.id)}
                       onUpdateTags={(tags) => updateImageTags(image.id, tags)}
                       onAddGlobalTag={addGlobalTag}
+                      onUpdateMetadata={(metadata) => updateImageMetadata(image.id, metadata)}
                     />
                   ))}
                 </div>
