@@ -17,7 +17,7 @@ const ProcessingSettings: React.FC<ProcessingSettingsProps> = ({ settings, onUpd
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center gap-2">
           <Settings2 className="h-5 w-5 text-indigo-600" />
-          Optimization Settings
+          Optimisation Settings
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -47,7 +47,7 @@ const ProcessingSettings: React.FC<ProcessingSettingsProps> = ({ settings, onUpd
           </div>
           <Slider
             value={[settings.quality * 100]}
-            min={10}
+            min={70}
             max={100}
             step={5}
             onValueChange={([val]) => onUpdate({ ...settings, quality: val / 100 })}
