@@ -14,7 +14,45 @@ Optimise, compress, and tag images with batch processing capabilities, all throu
 - **Port Conflict Detection** - Automatically checks if the required port is available
 - **Responsive Design** - Works seamlessly on desktop and mobile devices
 
-## Quick Start
+## Download Latest Release
+
+The easiest way to get started is to download a pre-built release from GitHub:
+
+**[Download Latest Release](https://github.com/Aersida-Applied-IT/wp-image-optimiser/releases/latest)**
+
+### Release Options
+
+Each release includes two download options:
+
+1. **Pre-built Version** (`wp-image-optimiser-dist-*.zip`) - **Recommended for most users**
+   - No build tools required
+   - Just extract and serve using the included scripts
+   - Perfect for non-technical users
+   - See [Quick Start (Pre-built Version)](#quick-start-pre-built-version) below
+
+2. **Source Code** (`wp-image-optimiser-source-*.zip`) - **For developers**
+   - Full source code for customization
+   - Requires Node.js 24 LTS and pnpm
+   - See [Quick Start (Source Code)](#quick-start-source-code) below
+
+> **Note:** You don't need a GitHub account to download releases. Simply visit the [releases page](https://github.com/Aersida-Applied-IT/wp-image-optimiser/releases) and download the files you need.
+
+## Quick Start (Pre-built Version)
+
+If you downloaded the pre-built release:
+
+1. **Extract the ZIP file** - Extract `wp-image-optimiser-dist-*.zip` to a folder
+2. **Navigate to the folder** - Open the extracted folder in your file explorer/terminal
+3. **Start the server**:
+   - **Windows**: Double-click `serve-dist.bat`
+   - **Mac/Linux**: Run `chmod +x serve-dist.sh && ./serve-dist.sh`
+4. **Open your browser** - Navigate to `http://localhost:9081`
+
+The server script will automatically detect Python or Node.js on your system. If neither is available, see [README_INSTALL.md](README_INSTALL.md) for installation instructions.
+
+## Quick Start (Source Code)
+
+If you downloaded the source code or cloned the repository:
 
 1. **Install Prerequisites** - Install Node.js 24 LTS and enable Corepack for pnpm (see [Installation Guide](README_INSTALL.md))
 2. **Install Dependencies** - Run `pnpm install` in the project directory
