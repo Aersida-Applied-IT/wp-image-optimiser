@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2, Download, Loader2, FileImage, CheckCircle2 } from "lucide-react";
 import TagSelector from './TagSelector';
+import ImageMetadata from './ImageMetadata';
 
 interface ImageCardProps {
   image: ProcessedImage;
@@ -11,6 +12,7 @@ interface ImageCardProps {
   onRemove: () => void;
   onUpdateTags: (tags: string[]) => void;
   onAddGlobalTag: (tag: string) => void;
+  onUpdateMetadata: (metadata: Partial<Pick<ProcessedImage, 'title' | 'altText' | 'description' | 'caption'>>) => void;
 }
 
 const ImageCard: React.FC<ImageCardProps> = ({
@@ -19,6 +21,7 @@ const ImageCard: React.FC<ImageCardProps> = ({
   onRemove,
   onUpdateTags,
   onAddGlobalTag,
+  onUpdateMetadata,
 }) => {
   const formatSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -74,19 +77,19 @@ const ImageCard: React.FC<ImageCardProps> = ({
               <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">
                 {formatSize(image.originalSize)}
               </span>
-              {image.optimizedSize && (
+              {image.optimisedSize && (
                 <>
                   <span className="text-slate-300">→</span>
                   <span className="text-[10px] text-green-600 font-bold tracking-wider">
-                    {formatSize(image.optimizedSize)}
+                    {formatSize(image.optimisedSize)}
                   </span>
                 </>
               )}
             </div>
           </div>
-          {image.optimizedUrl && (
+          {image.optimisedUrl && (
             <Button variant="outline" size="icon" className="h-8 w-8" asChild>
-              <a href={image.optimizedUrl} download={`optimized-${image.file.name.split('.')[0]}.webp`}>
+              <a href={image.optimisedUrl} download={`optimised-${image.file.name.split('.')[0]}.webp`}>
                 <Download className="h-4 w-4" />
               </a>
             </Button>
@@ -102,6 +105,11 @@ const ImageCard: React.FC<ImageCardProps> = ({
             onAddNewTag={onAddGlobalTag}
           />
         </div>
+
+        <ImageMetadata
+          image={image}
+          onUpdate={onUpdateMetadata}
+        />
       </CardContent>
     </Card>
   );

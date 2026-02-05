@@ -6,10 +6,14 @@ export interface ProcessedImage {
   preview: string;
   status: 'pending' | 'processing' | 'completed' | 'error';
   tags: string[];
-  optimizedBlob?: Blob;
-  optimizedUrl?: string;
+  altText?: string;
+  title?: string;
+  description?: string;
+  caption?: string;
+  optimisedBlob?: File;
+  optimisedUrl?: string;
   originalSize: number;
-  optimizedSize?: number;
+  optimisedSize?: number;
 }
 
 export interface ProcessingSettings {
@@ -21,7 +25,7 @@ export interface ProcessingSettings {
 const STORAGE_KEY_TAGS = 'wp-prep-global-tags';
 const STORAGE_KEY_SETTINGS = 'wp-prep-settings';
 
-const DEFAULT_TAGS = ['Mobile', 'Desktop', 'Product', 'Lifestyle', 'Banner', 'Hero', 'Gallery'];
+const DEFAULT_TAGS = ['Mobile', 'Desktop'];
 
 export const useImageStore = () => {
   const [images, setImages] = useState<ProcessedImage[]>([]);
@@ -49,15 +53,26 @@ export const useImageStore = () => {
     localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(settings));
   }, [settings]);
 
+  const getFilenamePrefix = (filename: string): string => {
+    return filename.split('.').slice(0, -1).join('.') || filename;
+  };
+
   const addImages = useCallback((files: File[]) => {
-    const newImages: ProcessedImage[] = files.map((file) => ({
-      id: Math.random().toString(36).substr(2, 9),
-      file,
-      preview: URL.createObjectURL(file),
-      status: 'pending',
-      tags: [],
-      originalSize: file.size,
-    }));
+    const newImages: ProcessedImage[] = files.map((file) => {
+      const filenamePrefix = getFilenamePrefix(file.name);
+      return {
+        id: Math.random().toString(36).substr(2, 9),
+        file,
+        preview: URL.createObjectURL(file),
+        status: 'pending',
+        tags: [],
+        title: filenamePrefix,
+        altText: filenamePrefix,
+        description: '',
+        caption: '',
+        originalSize: file.size,
+      };
+    });
     setImages((prev) => [...prev, ...newImages]);
   }, []);
 
@@ -66,7 +81,7 @@ export const useImageStore = () => {
       const filtered = prev.filter((img) => img.id !== id);
       const removed = prev.find((img) => img.id === id);
       if (removed?.preview) URL.revokeObjectURL(removed.preview);
-      if (removed?.optimizedUrl) URL.revokeObjectURL(removed.optimizedUrl);
+      if (removed?.optimisedUrl) URL.revokeObjectURL(removed.optimisedUrl);
       return filtered;
     });
   }, []);
@@ -106,6 +121,12 @@ export const useImageStore = () => {
     setGlobalTags((prev) => prev.filter(t => t !== tag));
   }, []);
 
+  const updateImageMetadata = useCallback((id: string, metadata: Partial<Pick<ProcessedImage, 'title' | 'altText' | 'description' | 'caption'>>) => {
+    setImages((prev) =>
+      prev.map((img) => (img.id === id ? { ...img, ...metadata } : img))
+    );
+  }, []);
+
   return {
     images,
     globalTags,
@@ -119,6 +140,7 @@ export const useImageStore = () => {
     removeGlobalTag,
     batchAddTags,
     clearAllTags,
+    updateImageMetadata,
     setImages
   };
 };

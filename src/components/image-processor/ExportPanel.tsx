@@ -4,13 +4,39 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, Terminal, ExternalLink, Info, FileArchive } from "lucide-react";
 import { showSuccess, showError } from '@/utils/toast';
 import JSZip from 'jszip';
+import { ProcessedImage } from '@/hooks/use-image-store';
 
 interface ExportPanelProps {
   onProcessAll: () => void;
-  images: any[];
+  images: ProcessedImage[];
   isProcessing: boolean;
   hasImages: boolean;
 }
+
+// Helper function to escape CSV values
+const escapeCsvValue = (value: string): string => {
+  if (value === null || value === undefined) return '';
+  const stringValue = String(value);
+  // If value contains comma, quote, or newline, wrap in quotes and escape quotes
+  if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+    return `"${stringValue.replace(/"/g, '""')}"`;
+  }
+  return stringValue;
+};
+
+// Helper function to escape bash string (for single quotes)
+const escapeBashString = (value: string): string => {
+  if (!value) return '';
+  // Escape single quotes by ending quote, adding escaped quote, starting new quote
+  return value.replace(/'/g, "'\\''");
+};
+
+// Helper function to escape batch string (for double quotes)
+const escapeBatchString = (value: string): string => {
+  if (!value) return '';
+  // Escape double quotes by doubling them
+  return value.replace(/"/g, '""');
+};
 
 const ExportPanel: React.FC<ExportPanelProps> = ({
   onProcessAll,
@@ -25,21 +51,111 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
     showSuccess("Command copied to clipboard!");
   };
 
+  const generateCsv = (completedImages: ProcessedImage[]): string => {
+    const headers = ['filename', 'title', 'alt', 'caption', 'description', 'tags'];
+    const rows = completedImages.map((img) => {
+      if (!img.optimisedBlob) return null;
+      const filename = img.optimisedBlob.name;
+      const title = escapeCsvValue(img.title || '');
+      const alt = escapeCsvValue(img.altText || '');
+      const caption = escapeCsvValue(img.caption || '');
+      const description = escapeCsvValue(img.description || '');
+      const tags = escapeCsvValue(img.tags.join(','));
+      return [filename, title, alt, caption, description, tags].join(',');
+    }).filter(Boolean);
+    
+    return [headers.join(','), ...rows].join('\n');
+  };
+
+  const generateBashScript = (completedImages: ProcessedImage[]): string => {
+    const commands = completedImages
+      .filter((img) => img.optimisedBlob)
+      .map((img) => {
+        const filename = img.optimisedBlob!.name;
+        const parts: string[] = [`wp media import "${filename}"`];
+        
+        if (img.title) {
+          const escaped = escapeBashString(img.title);
+          parts.push(`--title='${escaped}'`);
+        }
+        if (img.altText) {
+          const escaped = escapeBashString(img.altText);
+          parts.push(`--alt='${escaped}'`);
+        }
+        if (img.caption) {
+          const escaped = escapeBashString(img.caption);
+          parts.push(`--caption='${escaped}'`);
+        }
+        if (img.description) {
+          const escaped = escapeBashString(img.description);
+          parts.push(`--desc='${escaped}'`);
+        }
+        
+        return parts.join(' ');
+      });
+    
+    return `#!/bin/bash\n\n${commands.join('\n')}\n`;
+  };
+
+  const generateBatchScript = (completedImages: ProcessedImage[]): string => {
+    const commands = completedImages
+      .filter((img) => img.optimisedBlob)
+      .map((img) => {
+        const filename = img.optimisedBlob!.name;
+        const parts: string[] = [`wp media import "${filename}"`];
+        
+        if (img.title) {
+          const escaped = escapeBatchString(img.title);
+          parts.push(`--title="${escaped}"`);
+        }
+        if (img.altText) {
+          const escaped = escapeBatchString(img.altText);
+          parts.push(`--alt="${escaped}"`);
+        }
+        if (img.caption) {
+          const escaped = escapeBatchString(img.caption);
+          parts.push(`--caption="${escaped}"`);
+        }
+        if (img.description) {
+          const escaped = escapeBatchString(img.description);
+          parts.push(`--desc="${escaped}"`);
+        }
+        
+        return parts.join(' ');
+      });
+    
+    return commands.join('\n');
+  };
+
   const handleDownloadZip = async () => {
     const completed = images.filter(img => img.status === 'completed');
     if (completed.length === 0) {
-      showError("No optimized images to download. Process them first!");
+      showError("No optimised images to download. Process them first!");
       return;
     }
 
     setIsZipping(true);
     try {
       const zip = new JSZip();
+      
+      // Add optimised images
       completed.forEach((img) => {
-        if (img.optimizedBlob) {
-          zip.file(img.optimizedBlob.name, img.optimizedBlob);
+        if (img.optimisedBlob) {
+          zip.file(img.optimisedBlob.name, img.optimisedBlob);
         }
       });
+
+      // Generate and add CSV file
+      const csvContent = generateCsv(completed);
+      zip.file('metadata.csv', csvContent);
+
+      // Generate and add bash script
+      const bashScript = generateBashScript(completed);
+      zip.file('import.sh', bashScript);
+
+      // Generate and add batch script
+      const batchScript = generateBatchScript(completed);
+      zip.file('import.bat', batchScript);
 
       const content = await zip.generateAsync({ type: "blob" });
       const url = URL.createObjectURL(content);
@@ -72,7 +188,7 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
             onClick={onProcessAll}
             disabled={isProcessing || !hasImages}
           >
-            {isProcessing ? "Processing..." : "Optimize All Images"}
+            {isProcessing ? "Processing..." : "Optimise All Images"}
           </Button>
           <Button
             variant="outline"
@@ -83,7 +199,7 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
             {isZipping ? "Creating ZIP..." : (
               <>
                 <FileArchive className="mr-2 h-4 w-4" />
-                Download Optimized ZIP
+                Download Optimised ZIP
               </>
             )}
           </Button>
@@ -102,13 +218,13 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">WP-CLI Method</p>
             <div className="bg-slate-900 rounded-md p-3 relative group">
               <code className="text-[10px] text-indigo-300 block break-all">
-                wp media import ./optimized/*.webp --post_id=123 --title="Product Gallery"
+                wp media import ./optimised/*.webp --post_id=123 --title="Product Gallery"
               </code>
               <Button
                 size="sm"
                 variant="ghost"
                 className="absolute top-1 right-1 h-6 px-2 text-[10px] text-slate-400 hover:text-white"
-                onClick={() => copyToClipboard('wp media import ./optimized/*.webp')}
+                onClick={() => copyToClipboard('wp media import ./optimised/*.webp')}
               >
                 Copy
               </Button>
