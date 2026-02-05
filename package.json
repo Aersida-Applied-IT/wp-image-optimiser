@@ -1,6 +1,6 @@
 {
   "name": "wp-image-optimiser",
-  "version": "2026.02.05.0",
+  "version": "2026.0205.0",
   "description": "A web-based image optimisation tool for WordPress with tagging and batch processing capabilities",
   "private": false,
   "type": "module",

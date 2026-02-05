@@ -1,0 +1,103 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build production version
+        run: pnpm run build
+
+      - name: Extract version from tag
+        id: tag_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Create source code ZIP
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          ZIP_NAME="wp-image-optimiser-source-${VERSION}.zip"
+          zip -r "$ZIP_NAME" . \
+            -x "node_modules/*" \
+            -x "dist/*" \
+            -x ".git/*" \
+            -x "*.zip" \
+            -x ".github/*"
+          echo "SOURCE_ZIP=$ZIP_NAME" >> $GITHUB_ENV
+
+      - name: Create dist ZIP
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          ZIP_NAME="wp-image-optimiser-dist-${VERSION}.zip"
+          # Create a temporary directory with dist contents and serve scripts
+          mkdir -p dist-package
+          cp -r dist/* dist-package/
+          cp serve-dist.bat serve-dist.sh dist-package/
+          cd dist-package
+          zip -r "../$ZIP_NAME" .
+          cd ..
+          rm -rf dist-package
+          echo "DIST_ZIP=$ZIP_NAME" >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            ## Release ${{ github.ref_name }}
+            
+            ### Downloads
+            
+            **For End Users (No Build Required):**
+            - Download `wp-image-optimiser-dist-*.zip` - Pre-built version ready to serve
+            
+            **For Developers:**
+            - Download `wp-image-optimiser-source-*.zip` - Full source code
+            
+            ### Installation
+            
+            See [README_INSTALL.md](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/README_INSTALL.md) for detailed installation instructions.
+            
+            ### Quick Start (Pre-built Version)
+            
+            1. Download `wp-image-optimiser-dist-*.zip`
+            2. Extract the ZIP file
+            3. Navigate to the extracted folder
+            4. Run `serve-dist.bat` (Windows) or `./serve-dist.sh` (Mac/Linux)
+            5. Open http://localhost:9081 in your browser
+          files: |
+            ${{ env.SOURCE_ZIP }}
+            ${{ env.DIST_ZIP }}
+          draft: false
+          prerelease: false
