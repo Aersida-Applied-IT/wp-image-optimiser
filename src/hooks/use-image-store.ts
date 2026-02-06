@@ -30,9 +30,14 @@ export interface SSHSettings {
   wpPath: string; // Path to WordPress root directory on the server
 }
 
+export interface TagsSettings {
+  tags: string[];
+}
+
 const STORAGE_KEY_TAGS = 'wp-prep-global-tags';
 const STORAGE_KEY_SETTINGS = 'wp-prep-settings';
 const STORAGE_KEY_SSH = 'wp-prep-ssh-settings';
+const STORAGE_KEY_TAGS_SETTINGS = 'wp-prep-tags-settings';
 
 const DEFAULT_TAGS = ['Mobile', 'Desktop'];
 
@@ -64,6 +69,20 @@ export const useImageStore = () => {
     };
   });
 
+  const [tagsSettings, setTagsSettings] = useState<TagsSettings>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY_TAGS_SETTINGS);
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    // Migrate from globalTags if tagsSettings doesn't exist
+    const savedGlobalTags = localStorage.getItem(STORAGE_KEY_TAGS);
+    if (savedGlobalTags) {
+      const migratedTags = JSON.parse(savedGlobalTags);
+      return { tags: migratedTags };
+    }
+    return { tags: DEFAULT_TAGS };
+  });
+
   // Persist tags and settings
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_TAGS, JSON.stringify(globalTags));
@@ -76,6 +95,10 @@ export const useImageStore = () => {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_SSH, JSON.stringify(sshSettings));
   }, [sshSettings]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_TAGS_SETTINGS, JSON.stringify(tagsSettings));
+  }, [tagsSettings]);
 
   const getFilenamePrefix = (filename: string): string => {
     return filename.split('.').slice(0, -1).join('.') || filename;
@@ -129,6 +152,15 @@ export const useImageStore = () => {
     setImages((prev) => prev.map((img) => ({ ...img, tags: [] })));
   }, []);
 
+  const addTagToSettings = useCallback((tag: string) => {
+    if (!tagsSettings.tags.includes(tag)) {
+      setTagsSettings((prev) => ({
+        ...prev,
+        tags: [...prev.tags, tag]
+      }));
+    }
+  }, [tagsSettings.tags]);
+
   const updateImageStatus = useCallback((id: string, status: ProcessedImage['status'], data?: Partial<ProcessedImage>) => {
     setImages((prev) =>
       prev.map((img) => (img.id === id ? { ...img, status, ...data } : img))
@@ -145,7 +177,7 @@ export const useImageStore = () => {
     setGlobalTags((prev) => prev.filter(t => t !== tag));
   }, []);
 
-  const updateImageMetadata = useCallback((id: string, metadata: Partial<Pick<ProcessedImage, 'title' | 'altText' | 'description' | 'caption'>>) => {
+  const updateImageMetadata = useCallback((id: string, metadata: Partial<Pick<ProcessedImage, 'title' | 'altText' | 'description' | 'caption' | 'wpCategory' | 'wpTags'>>) => {
     setImages((prev) =>
       prev.map((img) => (img.id === id ? { ...img, ...metadata } : img))
     );
@@ -158,6 +190,8 @@ export const useImageStore = () => {
     setSettings,
     sshSettings,
     setSshSettings,
+    tagsSettings,
+    setTagsSettings,
     addImages,
     removeImage,
     updateImageTags,
@@ -166,6 +200,7 @@ export const useImageStore = () => {
     removeGlobalTag,
     batchAddTags,
     clearAllTags,
+    addTagToSettings,
     updateImageMetadata,
     setImages
   };

@@ -7,15 +7,18 @@ import {
 } from "@/components/ui/dialog";
 import ProcessingSettings from '@/components/image-processor/ProcessingSettings';
 import SSHSettings from '@/components/image-processor/SSHSettings';
-import { ProcessingSettings as ProcessingSettingsType, SSHSettings as SSHSettingsType } from '@/hooks/use-image-store';
+import TagsSettings from '@/components/image-processor/TagsSettings';
+import { ProcessingSettings as ProcessingSettingsType, SSHSettings as SSHSettingsType, TagsSettings as TagsSettingsType } from '@/hooks/use-image-store';
 
 interface SettingsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   processingSettings: ProcessingSettingsType;
   sshSettings: SSHSettingsType;
+  tagsSettings: TagsSettingsType;
   onProcessingSettingsUpdate: (settings: ProcessingSettingsType) => void;
   onSshSettingsUpdate: (settings: SSHSettingsType) => void;
+  onTagsSettingsUpdate: (settings: TagsSettingsType) => void;
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -23,8 +26,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   onOpenChange,
   processingSettings,
   sshSettings,
+  tagsSettings,
   onProcessingSettingsUpdate,
   onSshSettingsUpdate,
+  onTagsSettingsUpdate,
 }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -34,6 +39,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         </DialogHeader>
         <div className="space-y-6 mt-4">
           <ProcessingSettings settings={processingSettings} onUpdate={onProcessingSettingsUpdate} />
+          <TagsSettings settings={tagsSettings} onUpdate={onTagsSettingsUpdate} />
           <SSHSettings settings={sshSettings} onUpdate={onSshSettingsUpdate} />
         </div>
       </DialogContent>

@@ -1,26 +1,26 @@
 import React from 'react';
-import { ProcessedImage } from '@/hooks/use-image-store';
+import { ProcessedImage, TagsSettings } from '@/hooks/use-image-store';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, Download, Loader2, FileImage, CheckCircle2 } from "lucide-react";
+import { Trash2, Download, Loader2, CheckCircle2, Tag } from "lucide-react";
 import TagSelector from './TagSelector';
 import ImageMetadata from './ImageMetadata';
 
 interface ImageCardProps {
   image: ProcessedImage;
-  availableTags: string[];
+  tagsSettings: TagsSettings;
   onRemove: () => void;
   onUpdateTags: (tags: string[]) => void;
-  onAddGlobalTag: (tag: string) => void;
+  onAddTagToSettings: (tag: string) => void;
   onUpdateMetadata: (metadata: Partial<Pick<ProcessedImage, 'title' | 'altText' | 'description' | 'caption'>>) => void;
 }
 
 const ImageCard: React.FC<ImageCardProps> = ({
   image,
-  availableTags,
+  tagsSettings,
   onRemove,
   onUpdateTags,
-  onAddGlobalTag,
+  onAddTagToSettings,
   onUpdateMetadata,
 }) => {
   const formatSize = (bytes: number) => {
@@ -37,6 +37,13 @@ const ImageCard: React.FC<ImageCardProps> = ({
       : [...image.tags, tag];
     onUpdateTags(newTags);
   };
+
+  const handleAddNewTag = (tag: string) => {
+    onAddTagToSettings(tag);
+    toggleTag(tag);
+  };
+
+  const availableTags = tagsSettings.tags;
 
   return (
     <Card className="overflow-hidden border-slate-200 hover:border-indigo-300 transition-colors group">
@@ -102,9 +109,10 @@ const ImageCard: React.FC<ImageCardProps> = ({
             selectedTags={image.tags}
             availableTags={availableTags}
             onToggleTag={toggleTag}
-            onAddNewTag={onAddGlobalTag}
+            onAddNewTag={handleAddNewTag}
           />
         </div>
+
 
         <ImageMetadata
           image={image}
