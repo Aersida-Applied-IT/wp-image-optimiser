@@ -19,6 +19,8 @@ const Index = () => {
     setSettings,
     sshSettings,
     setSshSettings,
+    tagsSettings,
+    setTagsSettings,
     addImages,
     removeImage,
     updateImageTags,
@@ -26,6 +28,7 @@ const Index = () => {
     addGlobalTag,
     batchAddTags,
     clearAllTags,
+    addTagToSettings,
     updateImageMetadata,
     setImages
   } = useImageStore();
@@ -139,7 +142,7 @@ const Index = () => {
           {/* Left Column: Export & Actions */}
           <div className="lg:col-span-4 space-y-6">
             <BatchActions 
-              availableTags={globalTags} 
+              availableTags={tagsSettings.tags} 
               onBatchAddTags={batchAddTags}
               onClearAllTags={clearAllTags}
               hasImages={images.length > 0}
@@ -199,10 +202,10 @@ const Index = () => {
                     <ImageCard
                       key={image.id}
                       image={image}
-                      availableTags={globalTags}
+                      tagsSettings={tagsSettings}
                       onRemove={() => removeImage(image.id)}
                       onUpdateTags={(tags) => updateImageTags(image.id, tags)}
-                      onAddGlobalTag={addGlobalTag}
+                      onAddTagToSettings={addTagToSettings}
                       onUpdateMetadata={(metadata) => updateImageMetadata(image.id, metadata)}
                     />
                   ))}
@@ -219,8 +222,10 @@ const Index = () => {
           onOpenChange={setSettingsOpen}
           processingSettings={settings}
           sshSettings={sshSettings}
+          tagsSettings={tagsSettings}
           onProcessingSettingsUpdate={setSettings}
           onSshSettingsUpdate={setSshSettings}
+          onTagsSettingsUpdate={setTagsSettings}
         />
       )}
     </div>
