@@ -1,18 +1,15 @@
 import React, { useCallback, useState } from 'react';
-import { Image as ImageIcon, Layers, Zap, Trash2, Download } from "lucide-react";
+import { Image as ImageIcon, Layers, Zap, Trash2, Download, Settings } from "lucide-react";
 import imageCompression from 'browser-image-compression';
 
 import { useImageStore } from '@/hooks/use-image-store';
 import { showError, showSuccess } from '@/utils/toast';
 
 import ImageCard from '@/components/image-processor/ImageCard';
-import ProcessingSettings from '@/components/image-processor/ProcessingSettings';
 import ExportPanel from '@/components/image-processor/ExportPanel';
 import BatchActions from '@/components/image-processor/BatchActions';
+import SettingsModal from '@/components/image-processor/SettingsModal';
 import { Button } from "@/components/ui/button";
-
-
-import { MadeWithDyad } from "@/components/made-with-dyad";
 
 const Index = () => {
   const {
@@ -20,6 +17,8 @@ const Index = () => {
     globalTags,
     settings,
     setSettings,
+    sshSettings,
+    setSshSettings,
     addImages,
     removeImage,
     updateImageTags,
@@ -32,6 +31,7 @@ const Index = () => {
   } = useImageStore();
 
   const [isProcessing, setIsProcessing] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -107,6 +107,14 @@ const Index = () => {
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">WP Image Optimiser</h1>
           </div>
           <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              className="border-slate-200"
+              onClick={() => setSettingsOpen(true)}
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
             <label className="cursor-pointer">
               <input
                 type="file"
@@ -128,9 +136,8 @@ const Index = () => {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left Column: Settings & Export */}
+          {/* Left Column: Export & Actions */}
           <div className="lg:col-span-4 space-y-6">
-            <ProcessingSettings settings={settings} onUpdate={setSettings} />
             <BatchActions 
               availableTags={globalTags} 
               onBatchAddTags={batchAddTags}
@@ -142,6 +149,7 @@ const Index = () => {
               images={images}
               isProcessing={isProcessing}
               hasImages={images.length > 0}
+              sshSettings={sshSettings}
             />
           </div>
 
@@ -204,7 +212,17 @@ const Index = () => {
           </div>
         </div>
       </main>
-      <MadeWithDyad />
+
+      {settingsOpen && (
+        <SettingsModal
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
+          processingSettings={settings}
+          sshSettings={sshSettings}
+          onProcessingSettingsUpdate={setSettings}
+          onSshSettingsUpdate={setSshSettings}
+        />
+      )}
     </div>
   );
 };

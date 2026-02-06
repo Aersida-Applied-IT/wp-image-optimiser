@@ -22,8 +22,17 @@ export interface ProcessingSettings {
   format: 'webp' | 'jpeg' | 'png';
 }
 
+export interface SSHSettings {
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  wpPath: string; // Path to WordPress root directory on the server
+}
+
 const STORAGE_KEY_TAGS = 'wp-prep-global-tags';
 const STORAGE_KEY_SETTINGS = 'wp-prep-settings';
+const STORAGE_KEY_SSH = 'wp-prep-ssh-settings';
 
 const DEFAULT_TAGS = ['Mobile', 'Desktop'];
 
@@ -44,6 +53,17 @@ export const useImageStore = () => {
     };
   });
 
+  const [sshSettings, setSshSettings] = useState<SSHSettings>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY_SSH);
+    return saved ? JSON.parse(saved) : {
+      host: '',
+      port: 0,
+      username: '',
+      password: '',
+      wpPath: '~/public_html',
+    };
+  });
+
   // Persist tags and settings
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_TAGS, JSON.stringify(globalTags));
@@ -52,6 +72,10 @@ export const useImageStore = () => {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(settings));
   }, [settings]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_SSH, JSON.stringify(sshSettings));
+  }, [sshSettings]);
 
   const getFilenamePrefix = (filename: string): string => {
     return filename.split('.').slice(0, -1).join('.') || filename;
@@ -132,6 +156,8 @@ export const useImageStore = () => {
     globalTags,
     settings,
     setSettings,
+    sshSettings,
+    setSshSettings,
     addImages,
     removeImage,
     updateImageTags,
