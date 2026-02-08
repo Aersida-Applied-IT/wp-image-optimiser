@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 const Index = () => {
   const {
     images,
-    globalTags,
     settings,
     setSettings,
     sshSettings,
@@ -25,11 +24,11 @@ const Index = () => {
     removeImage,
     updateImageTags,
     updateImageStatus,
-    addGlobalTag,
     batchAddTags,
     clearAllTags,
     addTagToSettings,
     updateImageMetadata,
+    updateImageOutputFilename,
     setImages
   } = useImageStore();
 
@@ -54,10 +53,9 @@ const Index = () => {
 
       const compressedFile = await imageCompression(image.file, options);
       
-      // Create a new filename with tags: name [tag1 tag2].ext
-      const baseName = image.file.name.split('.')[0];
+      // Create a new filename with tags: outputFilename [tag1 tag2].ext
       const tagString = image.tags.length > 0 ? ` [${image.tags.join(' ')}]` : '';
-      const newFileName = `${baseName}${tagString}.${settings.format}`;
+      const newFileName = `${image.outputFilename}${tagString}.${settings.format}`;
       
       const finalFile = new File([compressedFile], newFileName, {
         type: `image/${settings.format}`,
@@ -207,6 +205,7 @@ const Index = () => {
                       onUpdateTags={(tags) => updateImageTags(image.id, tags)}
                       onAddTagToSettings={addTagToSettings}
                       onUpdateMetadata={(metadata) => updateImageMetadata(image.id, metadata)}
+                      onUpdateOutputFilename={(outputFilename) => updateImageOutputFilename(image.id, outputFilename)}
                     />
                   ))}
                 </div>

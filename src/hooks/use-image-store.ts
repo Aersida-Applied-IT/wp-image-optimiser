@@ -10,6 +10,7 @@ export interface ProcessedImage {
   title?: string;
   description?: string;
   caption?: string;
+  outputFilename: string; // Output filename without extension (defaults to source filename without extension)
   optimisedBlob?: File;
   optimisedUrl?: string;
   originalSize: number;
@@ -117,6 +118,7 @@ export const useImageStore = () => {
         altText: filenamePrefix,
         description: '',
         caption: '',
+        outputFilename: filenamePrefix, // Default to source filename without extension
         originalSize: file.size,
       };
     });
@@ -177,9 +179,15 @@ export const useImageStore = () => {
     setGlobalTags((prev) => prev.filter(t => t !== tag));
   }, []);
 
-  const updateImageMetadata = useCallback((id: string, metadata: Partial<Pick<ProcessedImage, 'title' | 'altText' | 'description' | 'caption' | 'wpCategory' | 'wpTags'>>) => {
+  const updateImageMetadata = useCallback((id: string, metadata: Partial<Pick<ProcessedImage, 'title' | 'altText' | 'description' | 'caption' | 'tags'>>) => {
     setImages((prev) =>
       prev.map((img) => (img.id === id ? { ...img, ...metadata } : img))
+    );
+  }, []);
+
+  const updateImageOutputFilename = useCallback((id: string, outputFilename: string) => {
+    setImages((prev) =>
+      prev.map((img) => (img.id === id ? { ...img, outputFilename } : img))
     );
   }, []);
 
@@ -202,6 +210,7 @@ export const useImageStore = () => {
     clearAllTags,
     addTagToSettings,
     updateImageMetadata,
+    updateImageOutputFilename,
     setImages
   };
 };

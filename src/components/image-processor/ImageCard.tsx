@@ -2,6 +2,8 @@ import React from 'react';
 import { ProcessedImage, TagsSettings } from '@/hooks/use-image-store';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Trash2, Download, Loader2, CheckCircle2, Tag } from "lucide-react";
 import TagSelector from './TagSelector';
 import ImageMetadata from './ImageMetadata';
@@ -13,6 +15,7 @@ interface ImageCardProps {
   onUpdateTags: (tags: string[]) => void;
   onAddTagToSettings: (tag: string) => void;
   onUpdateMetadata: (metadata: Partial<Pick<ProcessedImage, 'title' | 'altText' | 'description' | 'caption'>>) => void;
+  onUpdateOutputFilename: (outputFilename: string) => void;
 }
 
 const ImageCard: React.FC<ImageCardProps> = ({
@@ -22,6 +25,7 @@ const ImageCard: React.FC<ImageCardProps> = ({
   onUpdateTags,
   onAddTagToSettings,
   onUpdateMetadata,
+  onUpdateOutputFilename,
 }) => {
   const formatSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -76,11 +80,29 @@ const ImageCard: React.FC<ImageCardProps> = ({
       </div>
       <CardContent className="p-4 space-y-4">
         <div className="flex justify-between items-start gap-2">
-          <div className="min-w-0">
-            <p className="text-sm font-medium truncate text-slate-900" title={image.file.name}>
-              {image.file.name}
-            </p>
-            <div className="flex items-center gap-2 mt-1">
+          <div className="min-w-0 flex-1">
+            <div className="space-y-2">
+              <div>
+                <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Source Filename</Label>
+                <p className="text-sm font-medium truncate text-slate-600 mt-0.5" title={image.file.name}>
+                  {image.file.name}
+                </p>
+              </div>
+              <div>
+                <Label htmlFor={`output-filename-${image.id}`} className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  Output Filename
+                </Label>
+                <Input
+                  id={`output-filename-${image.id}`}
+                  type="text"
+                  value={image.outputFilename}
+                  onChange={(e) => onUpdateOutputFilename(e.target.value)}
+                  className="text-sm mt-0.5"
+                  placeholder="Enter output filename"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2 mt-2">
               <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">
                 {formatSize(image.originalSize)}
               </span>
@@ -95,8 +117,8 @@ const ImageCard: React.FC<ImageCardProps> = ({
             </div>
           </div>
           {image.optimisedUrl && (
-            <Button variant="outline" size="icon" className="h-8 w-8" asChild>
-              <a href={image.optimisedUrl} download={`optimised-${image.file.name.split('.')[0]}.webp`}>
+            <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" asChild>
+              <a href={image.optimisedUrl} download={image.optimisedBlob?.name || `${image.outputFilename}.webp`}>
                 <Download className="h-4 w-4" />
               </a>
             </Button>
