@@ -53,9 +53,14 @@ const Index = () => {
 
       const compressedFile = await imageCompression(image.file, options);
       
-      // Create a new filename with tags: outputFilename [tag1 tag2].ext
-      const tagString = image.tags.length > 0 ? ` [${image.tags.join(' ')}]` : '';
-      const newFileName = `${image.outputFilename}${tagString}.${settings.format}`;
+      // Sanitize outputFilename to remove square brackets (Posh-SSH bug: https://github.com/darkoperator/Posh-SSH/issues/381)
+      // eslint-disable-next-line no-useless-escape
+      const sanitizedOutputFilename = image.outputFilename.replace(/[\[\]]/g, '');
+      
+      // Create a new filename with tags: outputFilename (tag1 tag2).ext
+      // Using parentheses instead of square brackets to avoid Posh-SSH upload issues
+      const tagString = image.tags.length > 0 ? ` (${image.tags.join(' ')})` : '';
+      const newFileName = `${sanitizedOutputFilename}${tagString}.${settings.format}`;
       
       const finalFile = new File([compressedFile], newFileName, {
         type: `image/${settings.format}`,
@@ -151,6 +156,7 @@ const Index = () => {
               isProcessing={isProcessing}
               hasImages={images.length > 0}
               sshSettings={sshSettings}
+              settings={settings}
             />
           </div>
 
