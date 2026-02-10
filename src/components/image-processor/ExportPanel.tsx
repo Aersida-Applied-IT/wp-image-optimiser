@@ -434,10 +434,9 @@ function Invoke-WPCommand {
     
     try {
         # Expand ~ to home directory and ensure we're in the right directory
-        # Use absolute path to avoid any path resolution issues
+        # Use double quotes so $HOME expands on the remote (single quotes would leave $HOME literal)
         $expandedPath = $WP_PATH -replace '^~', '$HOME'
-        # Build command with proper quoting using single quotes for the path
-        $fullCommand = "cd '$expandedPath' && pwd && $Command"
+        $fullCommand = "cd \`"$expandedPath\`" && pwd && $Command"
         $result = Invoke-SSHCommand -SessionId $session.SessionId -Command $fullCommand
         
         if ($result.ExitStatus -ne 0) {
@@ -474,7 +473,8 @@ function Invoke-SFTPUpload {
         $null = Set-SCPItem -ComputerName $SSH_HOST -Port $SSH_PORT -Credential $credential -Path $LocalFile -Destination $expandedDest -AcceptKey -ErrorAction SilentlyContinue
         
         # Verify file was uploaded by checking if it exists on server
-        $verifyCmd = "test -f '$expandedDest/$fileName' && echo 'exists' || echo 'missing'"
+        # Use double quotes so $HOME expands on the remote (single quotes would leave $HOME literal)
+        $verifyCmd = "test -f \`"$expandedDest/$fileName\`" && echo 'exists' || echo 'missing'"
         $verifyResult = Invoke-SSHCommand -SessionId $session.SessionId -Command $verifyCmd
         if ($verifyResult.Output -match "exists") {
             Write-Host "Successfully uploaded $fileName" -ForegroundColor Green
@@ -535,7 +535,7 @@ Write-Host "Running wp-cli commands..." -ForegroundColor Cyan
 # Verify files are on server before running wp-cli commands
 Write-Host "Verifying uploaded files..." -ForegroundColor Gray
 $expandedPath = $WP_PATH -replace '^~', '$HOME'
-$verifyCmd = "cd '$expandedPath' && pwd && ls -la *.${fileExt} 2>/dev/null | head -10"
+$verifyCmd = "cd \`"$expandedPath\`" && pwd && ls -la *.${fileExt} 2>/dev/null | head -10"
 $verifyResult = Invoke-SSHCommand -SessionId $session.SessionId -Command $verifyCmd
 Write-Host "Server directory: $($verifyResult.Output)" -ForegroundColor Gray
 
